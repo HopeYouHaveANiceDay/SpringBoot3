@@ -1,0 +1,21 @@
+jwt:
+  secret: mysupercomplexsecret
+spring:
+  profiles:
+    active: ${ACTIVE_PROFILE:dev}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: <EMAIL_ID:your_email@gmail.com>
+    password: <EMAIL_PASSWORD:your_password>
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+application:
+  title: SpringBoot3
+  version: 1.0
