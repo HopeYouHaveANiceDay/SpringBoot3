@@ -1,0 +1,126 @@
+<ng-container *ngIf="(invoiceState$ | async) as state" [ngSwitch]="state.dataState">
+    <ng-container *ngSwitchCase="DataState.LOADED">
+       <app-navbar [user]="state?.appData?.data?.user"></app-navbar>
+       <section>
+          <div class="container">
+             <nav aria-label="breadcrumb" style="margin-top: 8px;">
+                <ol class="breadcrumb">
+                   <li class="breadcrumb-item"><a [routerLink]="['/']">Home</a></li>
+                   <li class="breadcrumb-item"><a [routerLink]="['/invoices']">Invoices</a></li>
+                   <li class="breadcrumb-item active" aria-current="page">{{ state?.appData?.data?.invoice.invoiceNumber }}
+                   </li>
+                </ol>
+             </nav>
+             <div class="row">
+                <div class="col-md-12">
+                   <div class="invoice">
+                      <div class="invoice-company text-inverse f-w-600">
+                         <span>
+                          <!-- click event -->
+                         <a (click)="exportAsPDF()" class="btn btn-sm btn-white m-b-10 p-l-5" style="font-weight: 500;background-color: #d6e0e5;color: #ea0c4b;">
+                            <i class="bi bi-file-earmark-pdf-fill" style="color: #ea0c4b;"></i>
+                             Export as PDF
+                         </a>
+                         </span>
+                      </div>
+                      <hr>
+                      <div id="invoice">
+                         <div class="invoice-header">
+                            <div class="invoice-from">
+                               <small>from</small>
+                               <address class="m-t-5 m-b-5">
+                                  <strong class="text-inverse">HopeYouHaveANiceDay,Inc.</strong><br>
+                                  Address: 123 Main Steet<br>
+                                  Philadelphia, Pennsylvania 15886<br>
+                                  Phone: (123) 456-7890<br>
+                                  Fax: (123) 456-7890
+                               </address>
+                            </div>
+                            <div class="invoice-to">
+                               <small>to</small>
+                               <address class="m-t-5 m-b-5">
+                                  <strong class="text-inverse">{{ state?.appData?.data?.customer.name }}</strong><br>
+                                  Address: {{ state?.appData?.data?.customer.address }} <br>
+                                  Email: {{ state?.appData?.data?.customer.email }} <br>
+                                  Phone: {{ state?.appData?.data?.customer.phone }} <br>
+                                  Status: <span class="badge bg-success">
+                                    {{ state?.appData?.data?.invoice.status }}
+                               </span>
+                               </address>
+                            </div>
+                            <div class="invoice-date">
+                               <small>Invoice Number: #{{ state?.appData?.data?.invoice.invoiceNumber }}</small>
+                               <!--
+                               text-inverse：常见于一些 UI 框架（比如 Bootstrap 的扩展），意思是“反色文字”，通常是浅色文字（白色）显示在深色背景上。
+                               m-t-5：这是一个缩写形式，表示 margin-top: 5px。也就是说，这个元素的顶部会留 5 像素的外边距。
+                               -->
+                               <div class="date text-inverse m-t-5" style="font-size:14px;">Invoice Date: {{ state?.appData?.data?.invoice.date | date: 'mediumDate' }}</div>
+                               <div class="invoice-detail" style="font-size:14px;">Due Date: 30 Days from Invoice Date</div>
+                            </div>
+                         </div>
+                         <div class="invoice-content">
+                            <div class="table-responsive">
+                               <table class="table table-invoice">
+                              <thead class="table-secondary">
+                                     <tr>
+                                        <th class="text-center" width="10%">#</th>
+                                        <th>Provided Servives</th>
+                                        <th class="text-center" width="10%">RATE</th>
+                                        <th class="text-right" width="20%">TOTAL</th>
+                                     </tr>
+                                  </thead>
+                                  <tbody>
+                                     <tr *ngFor="let service of state?.appData?.data?.invoice.services.split(',')">
+
+                          <!-- give me the number 1 => index 0 -->
+                                      <td class="text-center">{{ service.split(' ')[0] }}</td>
+                                           <td>
+                             <!-- give me the index 1, 2 => capture "House Cleaning" -->
+                                              <span class="text-inverse">{{ service.split(' ')[1] }} {{ service.split(' ')[2] }}</span><br>
+                                           </td>
+                     <!-- give me the "1" for the "RATE" -->
+                                           <td class="text-center">1</td>
+                                           <td class="text-right">{{ service.split(' ')[3] }}</td>
+                                     </tr>
+                                  </tbody>
+                               </table>
+                            </div>
+                            <div class="invoice-price">
+                               <div class="invoice-price-left">
+                                  <div class="invoice-price-row">
+                                     <div class="sub-price">
+                                        <small>SUBTOTAL</small>
+                                        <span class="text-inverse">${{ state?.appData?.data?.invoice.total }}</span>
+                                     </div>
+                                     <div class="sub-price">
+                                        <i class="fa fa-plus text-muted"></i>
+                                     </div>
+                                     <div class="sub-price">
+                                        <small>TAX (5.4%)</small>
+                                        <span class="text-inverse">${{ state?.appData?.data?.invoice.total * (5.4/100) | number: '.2-2'}}</span>
+                                     </div>
+                                  </div>
+                               </div>
+                               <div class="invoice-price-right">
+                                  <small>TOTAL</small> <span class="f-w-600">${{ state?.appData?.data?.invoice.total * (5.4/100) + state?.appData?.data?.invoice.total | number: '.2-2' }} </span>
+                               </div>
+                            </div>
+                         </div>
+                         <div class="invoice-footer">
+                            <p class="text-center m-b-5 f-w-600">
+                               THANK YOU FOR YOUR BUSINESS
+                            </p>
+                            <p class="text-center">
+                               <span class="m-r-10"><i class="fa fa-fw fa-lg fa-globe"></i>HopeYouHaveANiceDay.com</span> <br>
+                               <span class="m-r-10"><i class="fa fa-fw fa-lg fa-phone-volume"></i> Telephone:(123) 456-7890</span><br>
+                               <span class="m-r-10"><i class="fa fa-fw fa-lg fa-envelope"></i> Email: billing@HopeYouHaveANiceDay.com</span>
+                            </p>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+       </section>
+    </ng-container>
+ </ng-container>

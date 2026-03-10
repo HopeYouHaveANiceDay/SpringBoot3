@@ -1,0 +1,51 @@
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { LoginComponent } from './login/login.component';
+import { RegisterComponent } from './register/register.component';
+import { ResetpasswordComponent } from './resetpassword/resetpassword.component';
+import { VerifyComponent } from './verify/verify.component';
+
+/*
+(1) 當使用者進入 /user/verify/account/某個key，會顯示 VerifyComponent。
+    :key 是路由參數，可以用來傳遞驗證 token 或唯一識別碼。
+
+(2) 當使用者進入 /user/verify/password/某個key，同樣會顯示 VerifyComponent。
+    雖然使用同一個元件，但路由不同，元件內可以依據 URL 判斷是「帳號驗證」還是「密碼驗證」。
+
+(3) { path: '**', component: LoginComponent }
+    這是一個 catch-all (通配路由)。
+    當使用者輸入不存在的路由時，會自動導向到 LoginComponent。
+    ⚠️ 順序很重要：必須放在最後，否則會攔截所有路由。
+*/
+const authRoutes: Routes = [
+    { path: 'login', component: LoginComponent },
+    { path: 'register', component: RegisterComponent },
+    { path: 'resetpassword', component: ResetpasswordComponent },
+    { path: 'user/verify/account/:key', component: VerifyComponent },//same component, different routes
+    { path: 'user/verify/password/:key', component: VerifyComponent },
+];
+
+@NgModule({
+    imports: [RouterModule.forChild(authRoutes)], // forRoot vs forChild // forChild is part of the child route //(app.module.ts) 在 Angular 裡，AppRoutingModule 是一個專門用來管理 應用程式路由 (Routing) 的模組。它的主要用途是把不同的 URL 路徑對應到不同的元件 (Component)，讓使用者在瀏覽器中切換頁面時，Angular 能顯示正確的內容。
+    exports: [RouterModule]
+})
+export class AuthRoutingModule { }
+
+/*
+In angular.json, 注意：這裡用的是 bootstrap.min.js，它需要 Popper.js 才能正常運作。但如果改用 bootstrap.bundle.min.js，就已經包含 Popper，不需要額外安裝。
+
+Popper.js 是一個專門用來處理 浮動元素定位 的 JavaScript 函式庫。
+
+📌 核心概念
+什麼是 Popper?
+在網頁中，任何「跳出來」的 UI 元件都可以叫做 popper，例如：
+    Tooltip (提示文字)
+    Popover (彈出訊息框)
+    Dropdown (下拉選單)
+這些元件需要精確定位在某個元素旁邊，並且要避免被螢幕邊界裁切。
+
+🔧 Popper.js 的作用 :
+    自動計算 位置 (positioning)，讓浮動元素顯示在正確位置。
+    處理 邊界溢出 (overflow) 問題，避免 tooltip 或 dropdown 跑到螢幕外。
+    提供 彈性 API，可以搭配 Bootstrap、Material UI 等框架使用。
+*/

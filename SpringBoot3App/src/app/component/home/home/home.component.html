@@ -1,0 +1,249 @@
+<ng-container *ngIf="(homeState$ | async) as state">
+    <ng-container>
+
+<!--
+
+[user]="state?.appData?.data?.user"
+
+means :
+      In Postman,
+           "user": {
+            "id": 4,
+            "firstName": "Katie",
+            "lastName": "FAN",
+            "email": "KatieFan@gmail.com",
+            "address": "1234567890 Main Street",
+            "phone": "12345678912",
+            "title": "Clerk",
+            "bio": "Hello. Hope you have a nice day! ",
+            "imageUrl": "http://localhost:8080/user/image/KatieFan@gmail.com.png",
+            "enabled": true,
+            "createdAt": "2026-01-13T14:48:43",
+            "roleName": "ROLE_ADMIN",
+            "permissions": "READ:USER,READ:CUSTOMER,CREATE:USER,CREATE:CUSTOMER,UPDATE:USER,UPDATE:CUSTOMER",
+            "notLocked": true,
+            "usingMfa": false
+        }
+
+=> see the user icon/image in navbar   -->
+       <app-navbar [user]="state?.appData?.data?.user"></app-navbar>
+
+<!--
+1. <app-stats>
+      這是你自訂的 子元件 (StatsComponent)。
+      在 @Component 裡定義的 selector: 'app-stats'，就是用 <app-stats> 這個標籤來呼叫。
+
+2. [stats]="state?.appData?.data?.stats"
+      這是 屬性繫結 (Property Binding)。
+      左邊的 stats → 對應到子元件 StatsComponent 裡的 @Input() stats: Stats;。
+      右邊的 state?.appData?.data?.stats → 父元件的資料來源。
+      ?. 是 安全導航運算子，避免 state 或 appData 為 null 時拋錯。
+
+✅ 總結 :
+  <app-stats> → 呼叫子元件。
+  [stats]="..." → 把父元件的資料傳給子元件的 @Input() stats。
+  子元件就能在模板裡顯示 stats 的內容，例如 totalInvoices。
+-->
+       <app-stats [stats]="state?.appData?.data?.stats"></app-stats>
+       <section>
+          <div class="container">
+             <div class="row mt-3">
+
+                <div *ngIf="(fileStatus$ | async) as status" class="progress">
+                   <div [style.width.%]="status.percent" class="progress-bar bg-success" role="progressbar" [aria-valuenow]="status.percent" aria-valuemin="0" aria-valuemax="100">
+                    {{ status.type }} {{ status.percent }} %
+
+                   </div>
+                 </div>
+                <div class="col">
+                   <h4 class="fw-bold text-start">Customers</h4>
+                </div>
+                <div class="col">
+
+                  <!--  download Excel Report when we click the Excel Icon -->
+                   <h4 (click)="report()" class="fw-bold text-end"><i style="cursor: pointer;color: green;font-size: 30px;" class="bi bi-file-earmark-excel"></i></h4>
+
+                  </div>
+                <div class="col-xm-12">
+                   <table class="table table-hover">
+                      <thead  class="table-secondary">
+                          <tr>
+                            <th class="text-center" scope="col">ID</th>
+                            <th scope="col">Photo</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Action</th>
+                          </tr>
+                      </thead>
+                      <tbody class="table-body">
+<!--
+In inspect of Chrome
+
+(1) Object
+      data:
+        customers: {content: Array(2), pageable: {…}, totalPages: 1, totalElements: 2, last: true, …}
+        user: {id: 4, firstName: 'Katie', lastName: 'FAN', email: 'KatieFan@gmail.com', address: '1234567890 Main Street', …}
+
+Inside of our data in Chrome inspect, we have customers and user.
+the user is the user , but the customers is the page , not the actually customers, inside of the content, that we have the actually customers, change the "customer" to "page" in HttpResponse.builder() .data(of...) CustomerResource.java
+
+(2) Object
+      data:
+        page: {content: Array(2), pageable: {…}, totalPages: 1, totalElements: 2, last: true, …}
+        user: {id: 4, firstName: 'Katie', lastName: 'FAN', email: 'KatieFan@gmail.com', address: '1234567890 Main Street', …}
+
+Inside the page, it contains the page information , also the content is the customers
+
+-->
+<!--
+
+1. *ngFor
+  這是 Angular 的 結構型指令 (Structural Directive)。
+  用來在模板中 迭代 (loop) 一個陣列，並為陣列中的每個元素建立一個 <tr>。
+  語法：*ngFor="let item of items"
+      let customer → 宣告一個變數 customer，代表目前迭代到的元素。
+      of state?.appData?.data?.customers.content → 要迭代的陣列。
+
+2. state?.appData?.data?.customers.content
+      這是一個 安全導航運算子 (?.) 的用法。
+      意思是：如果 state 或 appData 或 data 或 customers 為 null 或 undefined，就不會拋出錯誤，而是直接回傳 undefined。
+      最後的 .content → 通常是一個陣列，包含多個 Customer 物件。
+  所以這裡的迴圈就是在迭代 客戶列表。
+
+3. class="cell-1"
+    這是給 <tr> 加上一個固定的 CSS 類別 cell-1。
+    用來控制表格列的樣式，例如背景顏色、邊框或字型。
+
+4. 整體效果
+    Angular 會根據 customers.content 陣列的長度，生成多個 <tr>。
+    每個 <tr> 對應一個 customer。
+    在 <tr> 裡，你可以用 {{ customer.name }}, {{ customer.email }} 等方式顯示客戶資料。
+
+
+*ngFor="let customer of state?.appData?.data?.page.content"
+       =>  this "content " contains the array of the customers data in Chrome inspect-->
+                          <tr *ngFor="let customer of state?.appData?.data?.page.content" class="cell-1">
+                            <th class="text-center">{{ customer.id }}</th>
+                            <td><img [src]="customer.imageUrl" width="42" height="42" class="rounded-circle" [alt]="customer.name"></td>
+                            <td>{{ customer.name }}</td>
+                            <td>{{ customer.email }}</td>
+                            <td>{{ customer.phone }}</td>
+
+<!--
+1. class="badge"
+這是一個 固定的 CSS 類別，永遠會套用在 <span> 元素上。
+在 Bootstrap 裡，badge 是一個樣式類別，用來顯示小型的標籤（像膠囊狀的提示）。
+例如：<span class="badge">ACTIVE</span> → 會顯示一個帶樣式的標籤。
+
+2. [ngClass]
+  這是 Angular 的 指令 (Directive)，用來 動態套用 CSS 類別。
+  [ngClass] 可以接收：
+      字串 → 單一類別名稱。
+      陣列 → 多個類別名稱。
+      物件 → 類別名稱作為 key，布林值作為 value（true = 套用，false = 不套用）。
+  在你的程式碼裡，用的是 陣列 + 三元運算子：
+  customer.status === 'ACTIVE' ? 'bg-success' : ''
+意思是：
+  如果 customer.status 等於 "ACTIVE" → 套用 bg-success 類別（綠色背景）。
+  否則 → 回傳空字串，不套用任何類別。
+
+✅ 總結
+class="badge" → 固定套用 Bootstrap 的 badge 樣式。
+[ngClass] → 動態套用顏色樣式，讓 badge 根據狀態改變顏色。
+結果 → 在表格裡顯示一個「顏色 + 狀態文字」的標籤。
+-->
+                            <td>
+                               <span class="badge"
+                                 [ngClass]="[
+                                    customer.status === 'ACTIVE' ? 'bg-success' : '',
+                                    customer.status === 'PENDING' ? 'bg-primary' : '',
+                                    customer.status === 'BANNED' ? 'bg-danger' : '',
+                                    customer.status === 'INACTIVE' ? 'bg-info' : ''
+                                    ]"
+                               >
+                                  {{ customer.status }}
+                               </span>
+                            </td>
+                            <td>{{ customer.type }}</td>
+                            <td>
+<!--
+they work at the same way :
+<button type="button" [routerLink]="['/customers',customer.id]" class="btn btn-info">View</button>
+-->
+                               <button type="button" (click)="selectCustomer(customer)" class="btn btn-info">View</button>
+                            </td>
+                         </tr>
+                      </tbody>
+                  </table>
+<!--
+1. *ngIf
+    這是 Angular 的 結構型指令 (Structural Directive)。
+    用來 條件渲染 (conditional rendering)：只有當條件為 true 時，對應的 HTML 元素才會顯示在畫面上。
+    如果條件為 false，Angular 會直接把這個元素從 DOM 移除。
+
+
+2. .length > 0 → 檢查陣列長度是否大於 0。
+      假設 page.content 是：
+      [
+        { "id": 1, "name": "Alice" },
+        { "id": 2, "name": "Bob" }
+      ]
+→ length = 2 → 條件成立 → 顯示元素。
+如果 page.content = []
+→ length = 0 → 條件不成立 → 元素不顯示。
+
+✅ 總結 :
+*ngIf → 控制元素是否渲染。
+state?.appData?.data?.page.content.length > 0 → 檢查客戶列表是否有資料。
+整體作用 → 只有在有客戶資料時才顯示表格列或相關內容。
+-->
+                   <nav *ngIf="state?.appData?.data?.page.content.length > 0" aria-label="Page navigation example">
+                      <ul class="pagination justify-content-end">
+                        <!--
+come from home.component.css
+.disabled {
+    pointer-events: none;/* 禁止滑鼠事件 */
+    opacity:0.06; /* 半透明，顯示不可用狀態 */
+} -->
+                         <li [ngClass]="0 == (currentPage$ | async) ? 'disabled' : ''" class="page-item pointer">
+                            <a (click)="goToNextOrPreviousPage('backward')" class="page-link">&laquo; Prev</a>
+                         </li>
+<!--
+1. *ngFor
+      Angular 的 結構型指令，用來迭代陣列。
+      語法：*ngFor="let item of items; let i = index"
+      let pageNumber → 宣告一個變數，代表目前迭代到的元素。
+      let i = index → 取得目前迭代的索引值 (從 0 開始)。
+
+2. [].constructor(state?.appData?.data?.page.totalPages)
+      這是一個比較「奇怪」的寫法，用來生成一個指定長度的陣列：
+      [].constructor(n) → 建立一個長度為 n 的空陣列。
+      這裡的 n 是 state?.appData?.data?.page.totalPages，也就是總頁數。
+      所以這個寫法的目的就是：建立一個長度等於總頁數的陣列，然後用 *ngFor 迭代它。
+
+✅ 總結 :
+    *ngFor → 迭代陣列生成多個元素。
+    [].constructor(totalPages) → 建立一個長度等於總頁數的陣列。
+    let i = index → 取得索引，用來顯示頁碼。
+    整體作用 → 動態生成分頁按鈕。
+-->
+                         <li *ngFor="let pageNumber of  state?.appData?.data?.page.totalPages | ExtractArrayValue: 'number'; let i = index;" class="page-item pointer">
+       <!--  start at 0, so add  1 for it, number 1 at the beginning
+        'active' => shows bule colour  -->
+                          <a (click)="goToPage(i)" [ngClass]="i == (currentPage$ | async) ? 'active' : ''" class="page-link">{{ i + 1 }}</a>
+                         </li>
+                         <!-- because start at 0, so -1 -->
+                         <li [ngClass]="(state?.appData?.data?.page.totalPages - 1) == (currentPage$ | async) ? 'disabled' : ''" class="page-item pointer">
+                            <a (click)="goToNextOrPreviousPage('forward')" class="page-link">Next &raquo;</a>
+                         </li>
+                      </ul>
+                   </nav>
+                </div>
+             </div>
+          </div>
+       </section>
+    </ng-container>
+ </ng-container>

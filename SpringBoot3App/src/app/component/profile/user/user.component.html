@@ -1,0 +1,539 @@
+   <ng-container *ngIf="(profileState$ | async) as state"> <!-- subscribe the Observable !!! -->
+    <ng-container>
+
+
+      <!-- [user] comes from @Imput() user: User; in navbar.component.ts. -->
+       <app-navbar [user]="state?.appData?.data?.user"></app-navbar>
+
+<!--  <div>{{ state | json }} </div>
+      => help to debug ,
+        e.g,  { "dataState": "ERROR_STATE", "appData": null, "error": "You need to log in to access this resource" }
+              { "dataState": "ERROR_STATE", "appData": null, "error": "The Token has expired on 2026-02-......" }
+              { "dataState": "LOADED_STATE", "appData": { "timeStamp": "2026-02-.....", "statusCode": 200, "status": "OK", "message": "Profile Retrieved", "data": { "user": { "id": 4, "firstName": "Smith", "lastName": "John", "email": "john@gmail.com", "address": "101 Main Street", "phone": "1234567890", "title": "Clerk", "bio": "Hello! Nice to see you!", "imageUrl": "https://cdn-icons-png.flaticon.com/512/149/149071.png", "enabled": true, "createdAt": "2026-01-....", "roleName": "ROLE_USER", "permissions": "READ:USER,READ:CUSTOMER", "usingMfa": true, "notLocked": true } } } }
+        解法是：先完成登入流程，取得有效的使用者 session/token，再呼叫 /user/profile。
+        -->
+
+
+       <section>
+          <div class="container">
+             <nav aria-label="breadcrumb" style="margin-top: 8px;">
+                <ol class="breadcrumb">
+                   <li class="breadcrumb-item">
+                      <a [routerLink]="['/']">Home</a>
+                   </li>
+                   <li class="breadcrumb-item active"> Users </li>
+      <li class="breadcrumb-item active" aria-current="page">{{ state?.appData?.data?.user?.firstName }} {{ state?.appData?.data?.user?.lastName }}</li>
+
+                </ol>
+             </nav>
+             <div class="bg-white shadow rounded-lg d-block d-sm-flex" style="border-radius: 8px;">
+                <div class="profile-tab-nav border-right">
+                   <div class="p-4">
+                      <div class="img-circle text-center mb-3" >
+                         <span style="position: relative">
+<!--
+<img [src]="state?.appData?.data?.user?.imageUrl" alt="John" class="shadow" />
+
+alt="John"
+  HTML 的 alt 屬性（替代文字）。
+  當圖片無法載入時，瀏覽器會顯示這段文字。
+  輔助工具（例如螢幕閱讀器）也會讀出這段文字，幫助視障使用者理解圖片。
+  在這裡，固定寫死 "John"，表示這張圖片是 John 的頭像。-->
+  <img [src]="state?.appData?.data?.user?.imageUrl" [alt]="state?.appData?.data?.user?.lastName + ' ' + state?.appData?.data?.user?.firstName" class="shadow" />
+                         <!--  <img src="https://img.freepik.com/free-icon/user_318-159711.jpg" alt="John" class="shadow" /> -->
+                         <i (click)="fileInput.click()" class="bi bi-camera-fill right-position"></i>
+                         </span>
+                      </div>
+
+ <h4 class="text-center">{{ state?.appData?.data?.user?.firstName }} {{ state?.appData?.data?.user?.lastName }}</h4>
+
+<span class="">Since {{ state?.appData?.data?.user?.createdAt | date: 'MMMM d, y' }}</span>
+
+
+</div>
+                   <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                      <a class="nav-link active" id="profile" data-bs-toggle="pill" data-bs-target="#profile-tab" aria-selected="true" aria-controls="profile" role="tab">
+                         <i class="bi bi-person-circle" style="margin-right: 12px;"></i> Profile
+                      </a>
+                      <a class="nav-link" id="password" data-bs-toggle="pill" data-bs-target="#password-tab" aria-selected="true" aria-controls="password" role="tab">
+                         <i class="bi bi-key-fill" style="margin-right: 12px;"></i> Password
+                      </a>
+                      <a class="nav-link" id="security" data-bs-toggle="pill" data-bs-target="#security-tab" aria-selected="true" aria-controls="security" role="tab">
+                         <i class="bi bi-shield-shaded" style="margin-right: 12px;"></i> Authorization
+                      </a>
+                      <a class="nav-link" id="application" data-bs-toggle="pill" data-bs-target="#application-tab" aria-selected="true" aria-controls="application" role="tab">
+                         <i class="bi bi-gear" style="margin-right: 12px;"></i> Account
+                      </a>
+                      <a class="nav-link" id="notification" data-bs-toggle="pill" data-bs-target="#notification-tab" aria-selected="true" aria-controls="notification" role="tab">
+                         <i class="bi bi-lock-fill" style="margin-right: 12px;"></i> Authentication
+                      </a>
+                   </div>
+                </div>
+                <div class="tab-content p-4 p-md-5" id="v-pills-tabContent" style="border-left: 1px solid #d4d0d0;">
+                   <div class="tab-pane fade show active" id="profile-tab" role="tabpanel" aria-labelledby="profile" style="min-height: 510px;">
+                      <h3 class="mb-4">Profile Settings</h3>
+                      <!--<form #profileForm="ngForm" (ngSubmit)="updateProfile(profileForm)"> -->
+
+
+
+<!--
+這段 HTML 標籤的作用是 建立一個 Angular 表單並綁定提交事件。
+📌 拆解說明
+1. <form>
+      建立一個表單元素，讓使用者可以輸入資料（例如更新個人資料）。
+2. #profileForm="ngForm"
+      這是 Angular 的 模板參考變數 (template reference variable)。
+      profileForm 代表這個表單，並且透過 Angular 的 NgForm 指令來管理表單狀態。
+      有了這個變數，你可以在 TypeScript 程式碼裡存取表單的值、驗證狀態等。
+3. (ngSubmit)="updateProfile(profileForm)"
+      綁定表單的 提交事件。
+      當使用者按下「提交」按鈕或 Enter 鍵時，Angular 會呼叫 updateProfile(profileForm) 方法。
+      profileForm 會被傳入方法，裡面包含表單的所有 key-value 資料。
+
+✅ 總結 :
+    #profileForm="ngForm" → 建立表單的 Angular 參考變數。
+    (ngSubmit)="updateProfile(profileForm)" → 當表單提交時，呼叫 updateProfile 方法並傳入表單物件。 -->
+                        <form #profileForm="ngForm" (ngSubmit)="updateProfile(profileForm)">
+
+
+<!-- ngModel 是Angular 中實現雙向數據綁定的核心工具，它使你能夠在模板和組件之間輕鬆傳遞數據。通過使用 ngModel ，你可以更有效地建立具有互動性和實時更新 ...-->
+                          <input type="hidden" name="id" [ngModel]="state?.appData?.data?.user?.id">
+                         <div class="row">
+                            <div class="col-md-6">
+                               <div class="form-group">
+
+
+
+
+
+<!--
+✅ 總結 :
+    [ngModel] → 單向綁定，只顯示值，不更新。
+    [(ngModel)] → 雙向綁定，顯示值 + 更新值。
+在表單裡要讓使用者輸入能影響資料，必須用 [(ngModel)]。
+
+
+📖 解釋
+[ngModel]
+      Angular 的雙向資料綁定指令。
+      這裡用的是「單向綁定」：把 state?.appData?.data?.user?.firstName 的值顯示在輸入框裡。
+      如果 state.appData.data.user.firstName 是 "John"，那麼輸入框就會顯示 "John"。
+[disabled]
+      控制輸入框是否可編輯。
+      條件是：如果使用者的 roleName 等於 "ROLE_USER"，輸入框就會被禁用。
+      這樣設計的目的：普通使用者不能修改自己的名字，只有管理員或更高權限的角色才能編輯。
+class="form-control"
+      Bootstrap 樣式，讓輸入框有一致的 UI。
+-->
+
+                                    <label>First Name</label>
+                                    <input type="text" name="firstName" [ngModel]="state?.appData?.data?.user?.firstName" [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER' || (isLoading$ | async)" class="form-control">
+                               </div>
+                            </div>
+                            <div class="col-md-6">
+                               <div class="form-group">
+                                    <label>Last Name</label>
+                                    <input type="text" name="lastName" [ngModel]="state?.appData?.data?.user?.lastName" [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER' || (isLoading$ | async)" class="form-control">
+                               </div>
+                            </div>
+                            <div class="col-md-6">
+                               <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="text" name="email" [ngModel]="state?.appData?.data?.user?.email" [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER' || (isLoading$ | async)" class="form-control">
+                               </div>
+                            </div>
+                            <div class="col-md-6">
+                               <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" name="phone" [ngModel]="state?.appData?.data?.user?.phone" [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER' || (isLoading$ | async)" class="form-control">
+                               </div>
+                            </div>
+                            <div class="col-md-6">
+                               <div class="form-group">
+                                    <label>Address</label>
+                                    <input type="text" name="address" [ngModel]="state?.appData?.data?.user?.address" [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER' || (isLoading$ | async)" class="form-control">
+                               </div>
+                            </div>
+                            <div class="col-md-6">
+                               <div class="form-group">
+                                    <label>Job Title</label>
+                                    <input type="text" name="title" [ngModel]="state?.appData?.data?.user?.title" [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER' || (isLoading$ | async)" class="form-control">
+                               </div>
+                            </div>
+                            <div class="col-md-12">
+                               <div class="form-group">
+                                    <label>Bio</label>
+                                  <textarea name="bio" [textContent] ="state?.appData?.data?.user?.bio" [ngModel]="state?.appData?.data?.user?.bio" [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER' || (isLoading$ | async)" class="form-control" rows="4"></textarea>
+                               </div>
+                            </div>
+                         </div>
+                         <div>
+
+<!--
+📖 運作原理 :
+(1) Spring Boot 後端：只負責處理請求，回傳資料或錯誤，它不會知道前端 UI 是否正在 loading。
+
+(2)Angular 前端：用 BehaviorSubject<boolean> 來管理「載入中」狀態。
+      在呼叫 API 前 → 手動設定 isLoadingSubject.next(true)，UI 顯示 spinner。
+      API 回應或錯誤後 → 手動設定 isLoadingSubject.next(false)，UI 隱藏 spinner。
+
+
+isLoadingSubject.next(true/false) 這些操作 不是 Spring Boot 後端決定的，而是 Angular 前端自己管理的 UI 狀態。至於「要放在哪個資料夾」，這取決於你的專案結構和責任分層。
+📌 一般 Angular 專案結構
+    常見的 Angular 專案會有這些資料夾：
+    (1) /services
+            放 API 呼叫邏輯，例如 user.service.ts。
+            → 這裡只負責呼叫 Spring Boot API，不直接控制 loading 狀態。
+    (2) /components
+            放 UI 元件，例如 profile.component.ts。
+            → 這裡負責顯示 spinner、按鈕 disabled 狀態，並且呼叫 isLoadingSubject.next(true/false)。
+    (3) /state 或 /store (如果用 NgRx 或其他狀態管理)
+            放全域狀態管理。
+            → 如果專案比較大，可以把 loading 狀態放在 store 裡，讓多個 component 共用。
+
+📌 建議放置位置
+小型專案 / 單一頁面
+    → 把 isLoadingSubject 放在 component (profile.component.ts) 裡，因為它只影響這個頁面的 UI。
+中型專案 / 多個頁面共用 loading 狀態
+    → 把 isLoadingSubject 放在 service (user.service.ts) 裡，讓不同 component 都能訂閱。
+大型專案 / 全域狀態管理
+    → 放在 store (NgRx, Akita, NGXS)，用 action 來切換 loading 狀態
+-->
+                                <button [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER' || (isLoading$ | async)" type="submit" class="btn btn-primary">
+                               <span *ngIf="isLoading$ | async" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span>
+                                   <!--If true, show "Loading..."-->
+                               <span *ngIf="isLoading$ | async">Loading...</span>
+
+                               <!--If not true, show "Update"-->
+                               <span *ngIf="!(isLoading$ | async)">Update</span>
+                            </button>
+
+
+
+                         </div>
+                      </form>
+                   </div>
+                   <div class="tab-pane fade" id="password-tab" role="tabpanel" aria-labelledby="password" style="min-height: 510px;">
+                      <h3 class="mb-4">Password Settings</h3>
+
+<!--
+是在 Angular 模板 (HTML) 裡定義一個表單，讓使用者可以提交資料。
+📌 拆解說明
+1. <form>
+      HTML 的表單標籤，用來包住輸入欄位與提交按鈕。
+
+2. #profileForm="ngForm"
+      這是 Angular 的 模板參考變數 (Template Reference Variable)。
+      profileForm 代表這個表單物件。
+      ngForm 是 Angular 提供的指令，用來把表單轉換成一個 Angular Form 物件，可以追蹤表單的狀態（例如 valid/invalid、dirty/pristine）。
+
+3. (ngSubmit)="updateProfile(profileForm)"
+      (ngSubmit) 是 Angular 的事件綁定，當表單被提交時觸發。
+      updateProfile(profileForm) → 呼叫 Component 裡的 updateProfile 方法，並把表單物件 profileForm 傳進去。
+-->
+                      <form #passwordForm="ngForm" (ngSubmit)="updatePassword(passwordForm)">
+
+
+<!--
+we have a user token, we can extract the id from there.
+
+Get rid of :
+<input type="hidden" name="userId">
+
+這段程式碼的作用是：
+    在表單裡存放一個「使用者 ID」的隱藏欄位。
+    使用者看不到這個欄位，但它會隨表單一起提交到後端。
+    常用於更新或刪除資料時，讓後端知道要操作哪一位使用者。
+-->
+                      <div class="row">
+                         <div class="col-md-6">
+                            <div class="form-group">
+                                 <label>Current password</label>
+<!--
+
+Angular 中的 ngModel 指令是實現「雙向數據綁定」的核心工具，廣泛用於表單控制項（如 input、select、textarea）。它允許模板（HTML）和元件（Component）之間的數據自動同步，使用者輸入即時更新模型，模型改變亦即時反映在界面上。透過 [(ngModel)]="property" 語法，大幅簡化了表單資料處理。
+NgForm .....
+
+
+
+Key value pair :
+    name="currentPassword"
+    name="newPassword"
+    name="confirmNewPassword"
+  要同 SpringBoot(UserResource.java => @RequestBody @Valid UpdatePasswordForm form)&(UpdatePasswordForm.java) 一樣-->
+                                 <input type="password" name="currentPassword" ngModel [disabled]="(isLoading$ | async)" class="form-control" required>
+                            </div>
+                         </div>
+                      </div>
+                      <div class="row">
+                         <div class="col-md-6">
+                            <div class="form-group">
+                                 <label>New password</label>
+                                 <input type="password" name="newPassword" ngModel [disabled]="(isLoading$ | async)" class="form-control" minlength="5" required>
+                            </div>
+                         </div>
+                         <div class="col-md-6">
+                            <div class="form-group">
+                                 <label>Confirm new password</label>
+                                 <input type="password" name="confirmNewPassword" ngModel [disabled]="(isLoading$ | async)" class="form-control" minlength="5" required>
+                            </div>
+                         </div>
+                      </div>
+                      <div>
+<!--
+📖 拆解 state?.appData?.data?.user?
+
+(1) state
+      這是你在 profile.component.html 裡透過 *ngIf="(profileState$ | async) as state" 取得的物件。
+      它代表 profileState$ Observable 的最新值，通常是一個 State<CustomHttpResponse<Profile>>。
+
+(2) state?.appData
+      appData 是你在 map(response => { ... }) 裡回傳的 API 資料。
+      這裡用 ?. (安全導航運算子) 是為了避免 state 或 appData 為 null 時拋出錯誤。
+
+(3) state?.appData?.data
+      data 是後端回傳 JSON 裡的主要 payload。
+      在你的 Postman 測試結果裡，data 裡包含 user、access_token、refresh_token 等。
+
+(4) state?.appData?.data?.user
+      user 是後端回傳的使用者物件，裡面有 id、firstName、lastName、email、roleName 等欄位。
+      所以 state?.appData?.data?.user?.firstName 就是使用者的名字。
+
+📌 在 [disabled] 裡的判斷 :
+    [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER'"
+        如果 user.roleName 等於 "ROLE_USER" → 輸入框會被禁用。
+        如果是 "ROLE_ADMIN" 或其他角色 → 輸入框可以編輯。
+  這樣設計的目的：
+    普通使用者 (ROLE_USER) 不能修改自己的名字。
+    管理員或更高權限角色 才能編輯。
+
+✅ 總結
+  state?.appData?.data?.user → 就是目前登入使用者的完整資料物件。
+  ?. 是安全導航運算子，避免 null 錯誤。
+  在 [disabled] 裡用 roleName 判斷角色，來控制欄位是否可編輯。
+
+
+passwordForm.invalid
+  passwordForm 是 Angular 表單物件（通常來自 ngForm）。
+  .invalid 是 Angular 表單的狀態屬性，代表表單驗證是否失敗。
+  for example
+  => minlength="5" 至少打5個
+  當表單裡有欄位不符合驗證規則時，invalid 會是 true。
+  passwordForm.invalid ||
+-->
+
+                         <button [disabled]="passwordForm.invalid || (isLoading$ | async)" type="submit" class="btn btn-primary">
+                            <span *ngIf="isLoading$ | async" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span>
+                            <span *ngIf="isLoading$ | async">Loading...</span>
+                            <span *ngIf="!(isLoading$ | async)">Update</span>
+                         </button>
+                      </div>
+                   </form>
+                   </div>
+                   <div class="tab-pane fade" id="security-tab" role="tabpanel" aria-labelledby="security" style="min-height: 510px;">
+                      <h3 class="mb-4">Authorization Settings</h3>
+
+
+                      <form #roleForm="ngForm" (ngSubmit)="updateRole(roleForm)">
+                      <div class="row">
+                         <div class="col-md-6">
+                            <div class="form-group">
+                               <label style="margin-bottom: 5px;">Role Name</label>
+
+<!--
+name="roleName"
+    表單欄位名稱是 roleName。
+    當表單送出時，這個欄位的值會被包含在 roleForm.value.roleName 裡。
+
+總結
+name="roleName"：指定欄位名稱。
+roleForm.value：表單送出後的整個資料物件。
+roleForm.value.roleName：表單裡 roleName 欄位的值（例如 "ROLE_USER" 或 "ROLE_ADMIN"）。
+👉 換句話說，這樣設計可以讓你在 TypeScript 方法裡直接取得使用者選擇的角色名稱，並傳給後端更新。-->
+                               <select name="roleName" [ngModel]="state?.appData?.data?.user?.roleName" [disabled]="!(state?.appData?.data?.user?.roleName === 'ROLE_SYSADMIN' || state?.appData?.data?.user?.roleName === 'ROLE_ADMIN') || (isLoading$ | async)" class="form-control select-cl" required>
+                                  <option *ngFor="let role of state?.appData?.data?.roles"
+                                  [selected]="state?.appData?.data?.user?.roleName === role.name"
+                                   [disabled]="!(state?.appData?.data?.user?.roleName === 'ROLE_SYSADMIN' || state?.appData?.data?.user?.roleName === 'ROLE_ADMIN') || (isLoading$ | async)"
+                                   [ngValue]="role.name"
+                                  class="select-cl">{{ role.name }}</option>
+                              </select>
+
+
+
+                            </div>
+                         </div>
+                         <div class="col-md-6">
+                            <div class="form-group">
+                                 <label style="margin-bottom: 5px;">Role Permissions</label>
+                                 <input type="text" *ngFor="let permission of state?.appData?.data?.user?.permissions.split(',')" [value]="permission" [disabled]="true" class="form-control" style="margin-bottom: 5px;">
+                            </div>
+                         </div>
+                      </div>
+                      <div>
+                         <button  [disabled]="!(state?.appData?.data?.user?.roleName === 'ROLE_SYSADMIN' || state?.appData?.data?.user?.roleName === 'ROLE_ADMIN') || (isLoading$ | async)" type="submit" class="btn btn-primary">
+                            <span *ngIf="isLoading$ | async" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span>
+                            <span *ngIf="isLoading$ | async">Loading...</span>
+                            <span *ngIf="!(isLoading$ | async)">Update</span>
+                         </button>
+                      </div>
+                   </form>
+                   </div>
+                   <div class="tab-pane fade" id="application-tab" role="tabpanel" aria-labelledby="application" style="min-height: 510px;">
+                      <h3 class="mb-4">Account Settings</h3>
+                      <form #settingsForm="ngForm" (ngSubmit)="updateAccountSettings(settingsForm)">
+                         <input type="hidden" name="userId">
+                      <div class="row">
+                         <div class="col-md-6">
+                            <div class="form-group">
+                               <div class="form-check">
+                                  <input [disabled]="!(state?.appData?.data?.user?.roleName === 'ROLE_SYSADMIN' || state?.appData?.data?.user?.roleName === 'ROLE_ADMIN') || (isLoading$ | async)"
+                                      [checked]="state?.appData?.data?.user?.enabled"
+                                      [ngModel]="state?.appData?.data?.user?.enabled"
+                                      type="checkbox" name="enabled" class="form-check-input">
+                                  <label class="form-check-label" for="enabled">
+                                  Account Active
+                                  </label>
+                               </div>
+                               <div class="form-check">
+                                  <input [disabled]="!(state?.appData?.data?.user?.roleName === 'ROLE_SYSADMIN' || state?.appData?.data?.user?.roleName === 'ROLE_ADMIN') || (isLoading$ | async)"
+                                      [checked]="state?.appData?.data?.user?.notLocked"
+                                      [ngModel]="state?.appData?.data?.user?.notLocked"
+                                      type="checkbox" name="notLocked" class="form-check-input">
+                                  <label class="form-check-label" for="notLocked">
+                                  Account Unlocked
+                                  </label>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                      <div>
+                        <!--/       !( ... ) 取反：如果不是這兩種角色 → 按鈕禁用。    -->
+                                <button [disabled]="!(state?.appData?.data?.user?.roleName === 'ROLE_SYSADMIN' || state?.appData?.data?.user?.roleName === 'ROLE_ADMIN') || (isLoading$ | async)" type="submit" class="btn btn-primary">
+                               <span *ngIf="isLoading$ | async" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span>
+                                   <!--If true, show "Loading..."-->
+                               <span *ngIf="isLoading$ | async">Loading...</span>
+
+                               <!--If not true, show "Update"-->
+                               <span *ngIf="!(isLoading$ | async)">Update</span>
+                            </button>
+                      </div>
+                   </form>
+                   </div>
+                   <div class="tab-pane fade" id="notification-tab" role="tabpanel" aria-labelledby="notification" style="min-height: 510px;">
+                      <h3 class="mb-4">Authentication Settings</h3>
+                      <p>These settings help keep your account more secure.</p>
+                      <div class="list-group mb-5 shadow">
+                         <div class="list-group-item">
+                             <div class="row align-items-center">
+                                 <div class="col">
+                                     <strong class="mb-2">Multi-Factor Authentication</strong>
+                                     <span *ngIf="state?.appData?.data?.user?.usingMfa" class="badge bg-success mx-3">Enabled</span>
+                                     <span *ngIf="!state?.appData?.data?.user?.usingMfa" class="badge bg-warning mx-3">Disabled</span>
+                                     <p class="text-muted mb-0">Set up Multi-factor Authentication (MFA) help keep your account more secure.</p>
+                                 </div>
+                                 <div class="col-auto">
+                                
+                               <button (click)="toggleMfa()" [disabled]="state?.appData?.data?.user?.roleName === 'ROLE_USER' || (isLoading$ | async) || !state?.appData?.data?.user?.phone" class="btn btn-primary btn-sm">
+                                      {{ state?.appData?.data?.user?.usingMfa ? 'Disable' : 'Enable' }}
+
+                                      <!-- 這段程式碼的作用是：在系統載入中時顯示一個小型旋轉器，提示使用者正在處理，並避免誤以為系統沒有反應。-->
+                                      <span *ngIf="(isLoading$ | async)" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span>
+                                     </button>
+                                 </div>
+                             </div>
+                         </div>
+                          <div class="list-group-item">
+                              <div class="row align-items-center">
+                                  <div class="col">
+                                      <strong class="mb-2">Activity Logs</strong>
+                                      <p class="text-muted mb-0">Show the latst activites on your account</p>
+                                  </div>
+                                  <div class="col-auto">
+                                      <div class="custom-control custom-switch">
+                                          <input type="checkbox" (change)="toggleLogs()" [disabled]="(isLoading$ | async)"
+                                          [checked]="(showLogs | async)"
+                                          class="custom-control-input" id="activityLog">
+                                          <span class="custom-control-label"></span>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+             <div *ngIf="(showLogs$ | async)" class="row">
+                <div class="col-xl-12 mt-4">
+                   <div class="card" style="border-radius: 8px;">
+                      <div class="card-body">
+                         <h5 class="card-title">Account Activities</h5>
+                         <h6 class="card-subtitle mb-2 text-muted">Latest activities on your account.                        </h6>
+<!-- 表格 (Tables)&(colour):  https://bootstrap5.hexschool.com/docs/5.0/content/tables/  -->
+                         <table class="table table-hover">
+                            <thead class="table-secondary">
+                               <tr>
+                                  <th scope="col">Device</th>
+                                  <th scope="col">IP Address</th>
+                                  <th scope="col">Date</th>
+                                  <th scope="col">Type</th>
+                                  <th scope="col">Description</th>
+                                  <th scope="col">Action</th>
+                               </tr>
+                            </thead>
+                            <tbody>
+                               <tr *ngFor="let event of state?.appData?.data?.events">
+                                  <td>{{ event.device }}</td>
+                                  <td>{{ event.ipAddress }}</td>
+                                  <td>{{ event.createdAt | date: 'MMM d, y, h:mm a'}}</td>
+                                  <!--
+                                   sth is SUCCESS    =>  put 'bg-success'           =>  green
+                                   sth is FAILURE    =>  put 'bg-danger'            =>  red
+                                   sth is important  =>  put 'bg-warning'           =>  yellow
+                                   other (update)    =>  put 'bg-primary'/'bg-info' => blue                       -->
+                                  <td>
+                                     <span class="badge pill" [ngClass]="[
+                                     event.type === EventType.LOGIN_ATTEMPT_SUCCESS ? 'bg-success' : '',
+                                     event.type === EventType.LOGIN_ATTEMPT ? 'bg-warning' : '',
+                                     event.type === EventType.PROFILE_UPDATE ? 'bg-primary' : '',
+                                     event.type === EventType.LOGIN_ATTEMPT_FAILURE ? 'bg-danger' : '',
+                                     event.type === EventType.PROFILE_PICTURE_UPDATE ? 'bg-primary' : '',
+                                     event.type === EventType.ROLE_UPDATE ? 'bg-info' : '',
+                                     event.type === EventType.ACCOUNT_SETTINGS_UPDATE ? 'bg-warning' : '',
+                                     event.type === EventType.PASSWORD_UPDATE ? 'bg-warning' : '',
+                                     event.type === EventType.MFA_UPDATE ? 'bg-info' : ''
+                                     ]">
+                                          {{ event.type }}
+                                     </span>
+<!--
+在 Angular 裡，你的模板判斷是：
+  event.type === EventType.ACCOUNT_SETTINGS_UPDATE
+這個判斷只有在 資料庫裡的值 (event.type) 和 enum 定義 (EventType.ACCOUNT_SETTINGS_UPDATE) 完全一致 時才會成立。
+
+為什麼需要一致?
+  資料庫 → 前端：後端 API 把 Events.type 的字串傳到前端。
+  前端 enum：你在 TypeScript 裡定義了 EventType.ACCOUNT_SETTINGS_UPDATE = 'ACCOUNT_SETTINGS_UPDATE'。
+  Angular 的 === 是嚴格比對，必須字串完全相同（包括大小寫、空格）。
+  如果資料庫裡是 "ACCOUNT_SETTING_UPDATE"（少了 S），而 enum 定義是 "ACCOUNT_SETTINGS_UPDATE"，就會比對失敗。反過來，如果 enum 定義錯誤，資料庫正確，也會比對失敗。
+                                     -->
+                                  </td>
+                                  <td>{{ event.description }}</td>
+                                  <td>
+                                     <button type="button" class="btn btn-sm" style="background-color: #fd5d0d; font-weight: 450;">Report</button>
+                                  </td>
+                               </tr>
+                            </tbody>
+                         </table>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+       </section>
+    </ng-container>
+ </ng-container>
+
+ <!-- profile image change form -->
+ <form enctype="multipart/form-data" style="display:none;">
+    <input type="file" #fileInput (change) ="updatePicture($event.target.files[0])" name="image" id="image"
+       placeholder="file" ngModel accept="image/*" />
+ </form>

@@ -1,0 +1,169 @@
+<section *ngIf="(loginState$ | async) as state" [ngSwitch]="state.dataState">
+<!--*
+
+(1) ngIf
+    Angular 的結構型指令，用來根據條件決定是否渲染某段 HTML。
+    如果條件為 true，就顯示 <section>；否則不顯示。
+
+(2) loginState$ | async
+    loginState$ 是一個 Observable<LoginState>。
+    async pipe 會自動訂閱這個 Observable，並把最新的值傳給模板。
+    同時也會自動處理取消訂閱，避免記憶體洩漏。
+
+(3) as state
+    這是 Angular 的語法糖，表示把 async pipe 的結果存到一個區域變數 state。
+    在 <section> 內部，你就可以用 state 來存取登入狀態。
+
+(4) [ngSwitch]="state.dataState"
+    Angular 的 ngSwitch 指令，用來根據某個值決定顯示哪個區塊。
+    這裡是根據 state.dataState 的值（例如 LOADING, LOADED, ERROR）。
+    通常會搭配 *ngSwitchCase 和 *ngSwitchDefault 使用。
+-->
+  <div *ngIf="!state.loginSuccess && !state.isUsingMfa" class="container">
+    <div class="row justify-content-center my-5">
+      <div class="col-md-6" style="margin-top: 50px;">
+        <div class="card">
+          <div class="card-body">
+            <div class="text-center">
+              <h2><i style="margin-right: 5px;" class="bi bi-safe"></i>~ Hope You Have a Nice Day ~</h2>
+              <!-- <p class="lead">Questions? Do not hesitate to contact us.</p> -->
+              <h5 class="card-title mt-4 mb-5">Account Login</h5>
+              <!-- <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6> -->
+            </div>
+
+            <div *ngIf="state.dataState === DataState.ERROR" class="alert alert-danger bg-danger text-light border-0 alert-dismissible fade show" role="alert">
+              {{state.error}}
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <form #loginForm="ngForm" (ngSubmit)="login(loginForm)">
+              <div class="form-outline mb-4">
+                <label class="form-label" for="email">Email Address</label>
+
+<!-- 這段程式碼的意思是：「當登入狀態是 LOADING 時，把email輸入框設為 disabled，避免使用者在載入過程中繼續輸入或提交。」-->
+                <input [disabled]="state.dataState === DataState.LOADING" ngModel type="email" name="email" class="form-control" required>
+              </div>
+
+
+              <div class="form-outline mb-4">
+                <label class="form-label" for="password">Password</label>
+
+<!-- 這段程式碼的意思是：「當登入狀態是 LOADING 時，把密碼輸入框設為 disabled，避免使用者在載入過程中繼續輸入或提交。」-->
+                <input [disabled]="state.dataState === DataState.LOADING" ngModel type="password" name="password" class="form-control" required>
+
+
+              </div>
+              <div class="d-flex justify-content-center mb-4">
+
+<!-- 這段程式碼的意思是：「當登入流程正在載入、表單無效或表單尚未修改時，禁用提交按鈕；否則允許使用者點擊登入。」 -->
+                <button [disabled]="state.dataState === DataState.LOADING || loginForm.invalid || loginForm.pristine" type="submit" class="btn btn-primary">
+                  <span *ngIf="state.dataState === DataState.LOADING" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span>
+                  <span *ngIf="state.dataState === DataState.LOADING">Loading...</span>
+                  <span *ngIf="!(state.dataState === DataState.LOADING)">Log in</span>
+                </button>
+              </div>
+            </form>
+            <div class="row mb-4">
+              <div class="col d-flex justify-content-center">
+
+<!--
+(1) [ngStyle] : Angular 的指令，用來動態設定元素的 CSS 樣式。
+    這裡綁定的是一個物件：
+      { 'pointer-events': state.dataState === DataState.LOADING ? 'none' : '' }
+    意思是：如果 state.dataState 等於 LOADING，就把 CSS pointer-events 設為 'none'；否則設為空字串。
+
+(2) pointer-events: none
+    CSS 屬性，會讓元素「不能被滑鼠點擊或互動」。
+    在這裡的效果就是：當登入流程正在載入中，使用者不能點擊「Create an Account」連結。
+
+(3) routerLink="/register"
+    Angular Router 的指令，表示這個 <a> 連結會導向 /register 路由。
+    當使用者點擊時，會切換到註冊頁面，而不是重新載入整個網站。
+-->
+                 <a [ngStyle]="{'pointer-events': state.dataState === DataState.LOADING ? 'none': ''}" routerLink="/register">Create an Account</a>
+              </div>
+              <div class="col">
+                <a [ngStyle]="{'pointer-events': state.dataState === DataState.LOADING ? 'none': ''}"routerLink="/resetpassword"> Forgot password?</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success screen -->
+  <div *ngIf="state.isUsingMfa" class="container">
+    <!-- <div class="container"> -->
+    <div class="row justify-content-center my-5">
+      <div class="col-md-6" style="margin-top: 50px;">
+        <div class="card">
+          <div class="card-body">
+            <div class="text-center">
+              <h2><i style="margin-right: 5px;" class="bi bi-safe"></i>~ Hope You Have a Nice Day ~</h2>
+              <h5 class="card-title mt-4 mb-4">Verification Code Sent To ...{{ state.phone }}</h5>
+<i class="bi bi-check-circle-fill" style="font-size: 30px;color: green;"></i>
+              <p class="mt-2" style="font-size: 20px;">Please access your SMS and enter the code.</p>
+            </div>
+            <div *ngIf="state.dataState === DataState.ERROR" class="alert alert-danger bg-danger text-light border-0 alert-dismissible fade show" role="alert">
+            {{ state.error }}
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <form #verifyCodeForm="ngForm" (ngSubmit)="verifyCode(verifyCodeForm)">
+              <div class="form-outline mb-4">
+                <label class="form-label" for="code">Verification Code</label>
+
+<!--
+加咗ngModel =>  enable the button of Verify Code when typing Verication Code
+
+ngModel :
+    Angular 的雙向資料繫結指令。
+    讓輸入框的值和 component 裡的變數保持同步。
+    在 NgForm 表單中，這個值會自動被收集到 verifyCodeForm.value.code。
+-->
+                <input [disabled]="state.dataState === DataState.LOADING" ngModel type="text" name="code" class="form-control" required>
+              </div>
+              <div class="d-flex justify-content-center mb-4">
+
+
+<!--
+這段程式碼是一個 Angular 按鈕 (button)，用來提交「驗證碼表單」，並且根據不同狀態顯示不同的內容。
+
+[disabled] → 屬性繫結，控制按鈕是否可用。
+  當以下任一條件成立，按鈕會被禁用：
+  (1) state.dataState === DataState.LOADING → 系統正在驗證中。
+  (2) verifyCodeForm.invalid → 表單驗證失敗（例如必填欄位沒填）。
+  (3) verifyCodeForm.pristine → 表單尚未被修改（使用者還沒輸入）。
+type="submit" → 這是一個表單提交按鈕。
+class="btn btn-primary" → 使用 Bootstrap 樣式，藍色主要按鈕。
+-->
+                <button [disabled]="state.dataState === DataState.LOADING || verifyCodeForm.invalid || verifyCodeForm.pristine" type="submit" class="btn btn-primary">
+                  <span *ngIf="state.dataState === DataState.LOADING" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="margin-right: 5px;"></span>
+                  <span *ngIf="state.dataState === DataState.LOADING">Loading...</span>
+                  <span *ngIf="!(state.dataState === DataState.LOADING)">Verify Code</span>
+                </button>
+
+
+
+              </div>
+            </form>
+            <div class="row mb-4">
+              <div class="col d-flex justify-content-center">
+
+<!--
+(click)="loginPage()"
+    Angular 的事件繫結語法。
+    當使用者點擊這個 <a> 標籤時，會呼叫 component 類別中的 loginPage() 方法。
+    這樣就能在 TypeScript 裡定義登入頁面邏輯，例如導向路由或顯示登入表單。
+-->
+                <a (click)="loginPage()" style="color: #0D6EFD; text-decoration: underline; cursor: pointer;">Account Login</a>
+              </div>
+              <div class="col">
+                <a [routerLink]="['/register']" style="color: #0D6EFD; text-decoration: underline; cursor: pointer;">Create an account</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
